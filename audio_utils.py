@@ -3,14 +3,22 @@ import tempfile
 from gtts import gTTS
 import os
 import pygame
-import streamlit as st  # Added missing import
+import streamlit as st
 
 class AudioManager:
     def __init__(self):
         self.recognizer = sr.Recognizer()
+        self._audio_available = False
+        try:
+            # Try to initialize pygame mixer
+            pygame.mixer.init()
+            pygame.mixer.quit()  # Clean up after test
+            self._audio_available = True
+        except Exception:
+            self._audio_available = False
     
     def text_to_speech(self, text):
-        """Convert text to speech and play it"""
+        """Convert text to speech and save it"""
         tts = gTTS(text=text, lang='en')
         
         # Save to temporary file
@@ -19,14 +27,22 @@ class AudioManager:
             return fp.name
 
     def play_audio(self, file_path):
-        """Play audio file using pygame"""
+        """Play audio file using pygame with fallback behavior"""
         try:
+            if not self._audio_available:
+                st.warning("Audio playback not available. Question text is displayed above.")
+                return
+
             pygame.mixer.init()
             pygame.mixer.music.load(file_path)
             pygame.mixer.music.play()
             while pygame.mixer.music.get_busy():
                 pygame.time.Clock().tick(10)
             pygame.mixer.music.unload()
+            pygame.mixer.quit()
+        except Exception as e:
+            st.warning("Audio playback not available. Question text is displayed above.")
+            self._audio_available = False  # Disable audio for future attempts
         finally:
             # Ensure file is cleaned up even if playback fails
             if os.path.exists(file_path):
