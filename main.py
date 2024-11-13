@@ -144,59 +144,59 @@ def main():
                 audio_manager.play_audio(audio_file)
             st.session_state.current_question_id = st.session_state.current_question
         
-        if st.button("Record Answer", type="primary"):
-            answer = audio_manager.record_audio()
-            if answer:
-                st.markdown(
-                    f"""
-                    <div class="evaluation-card">
-                        <h4>Your Answer:</h4>
-                        <p>{answer}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-                
-                with st.spinner("Evaluating answer..."):
-                    evaluation = evaluate_answer(
-                        current_q, 
-                        answer, 
-                        st.session_state.submitted_code,
-                        st.session_state.uploaded_files_content
-                    )
-                
-                if evaluation['assessment'] != 'ERROR':
+            if st.button("Answer Question", type="primary"):
+                answer = audio_manager.record_audio()
+                if answer:
                     st.markdown(
                         f"""
                         <div class="evaluation-card">
-                            <h4>Evaluation:</h4>
-                            <p>{evaluation['explanation']}</p>
+                            <h4>Your Answer:</h4>
+                            <p>{answer}</p>
                         </div>
                         """,
                         unsafe_allow_html=True
                     )
                     
-                    st.session_state.assessment_results.append({
-                        'question': current_q,
-                        'answer': answer,
-                        'evaluation': evaluation
-                    })
-                    
-                    if st.session_state.current_question < len(st.session_state.questions_asked) - 1:
-                        st.session_state.current_question += 1
-                        st.rerun()
-                    else:
-                        st.success("🎉 Assessment completed!")
-                        report = generate_report()
-                        st.markdown(report)
-                        
-                        report_filename = f"assessment_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                        st.download_button(
-                            label="📥 Download Report",
-                            data=report,
-                            file_name=report_filename,
-                            mime="text/markdown"
+                    with st.spinner("Evaluating answer..."):
+                        evaluation = evaluate_answer(
+                            current_q, 
+                            answer, 
+                            st.session_state.submitted_code,
+                            st.session_state.uploaded_files_content
                         )
+                    
+                    if evaluation['assessment'] != 'ERROR':
+                        st.markdown(
+                            f"""
+                            <div class="evaluation-card">
+                                <h4>Evaluation:</h4>
+                                <p>{evaluation['explanation']}</p>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        
+                        st.session_state.assessment_results.append({
+                            'question': current_q,
+                            'answer': answer,
+                            'evaluation': evaluation
+                        })
+                        
+                        if st.session_state.current_question < len(st.session_state.questions_asked) - 1:
+                            st.session_state.current_question += 1
+                            st.rerun()
+                        else:
+                            st.success("🎉 Assessment completed!")
+                            report = generate_report()
+                            st.markdown(report)
+                            
+                            report_filename = f"assessment_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+                            st.download_button(
+                                label="📥 Download Report",
+                                data=report,
+                                file_name=report_filename,
+                                mime="text/markdown"
+                            )
                         
                         st.session_state.current_question = None
 
